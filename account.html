@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Profile - Crypto Button</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .profile-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .avatar-section {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid var(--btc);
+            object-fit: cover;
+            background: #1a1a1a;
+            box-shadow: 0 0 20px rgba(243, 186, 47, 0.2);
+        }
+
+        .upload-label {
+            position: absolute;
+            bottom: 0; right: 0;
+            background: var(--btc);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .input-group {
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 10px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            margin-left: 10px;
+        }
+
+        .nick-input {
+            width: 100%;
+            background: #111;
+            border: 1px solid #222;
+            padding: 15px 20px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 700;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .nick-input:focus { border-color: var(--btc); box-shadow: 0 0 15px rgba(243, 186, 47, 0.1); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .stat-card span { font-size: 10px; color: #666; display: block; margin-bottom: 5px; }
+        .stat-card b { font-family: 'Orbitron', sans-serif; color: var(--btc); font-size: 16px; }
+
+        .back-btn {
+            position: absolute;
+            top: 20px; left: 20px;
+            background: rgba(255,255,255,0.05);
+            border: none; color: white;
+            padding: 10px 15px; border-radius: 12px;
+            font-weight: bold;
+        }
+
+        #ton-connect-account {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="bg-black">
+
+    <button class="back-btn" onclick="history.back()">← BACK</button>
+
+    <div class="profile-container">
+        <h2 class="mt-12 mb-8 font-black italic text-2xl uppercase tracking-tighter">Profile Settings</h2>
+
+        <div class="avatar-section">
+            <img src="https://via.placeholder.com/120" id="user-avatar" class="avatar-preview" alt="avatar">
+            <label for="avatar-upload" class="upload-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="black"><path d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"/></svg>
+            </label>
+            <input type="file" id="avatar-upload" hidden accept="image/*" onchange="previewAvatar(event)">
+        </div>
+
+        <div class="input-group">
+            <label>Display Name</label>
+            <input type="text" id="user-nick" class="nick-input" placeholder="Enter your nickname..." oninput="saveNick()">
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Best Record</span>
+                <b id="acc-best-time">58:39</b>
+            </div>
+            <div class="stat-card">
+                <span>Time in Game</span>
+                <b id="acc-total-time">1h 24m</b>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Web3 Connection</label>
+            <div id="ton-connect-account"></div>
+        </div>
+
+        <button onclick="saveAll()" class="start-btn" style="background: var(--btc); color: black;">SAVE PROFILE</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Загрузка данных
+        window.onload = () => {
+            document.getElementById('user-nick').value = localStorage.getItem('playerNick') || "";
+            const savedAvatar = localStorage.getItem('playerAvatar');
+            if (savedAvatar) document.getElementById('user-avatar').src = savedAvatar;
+            
+            // Загружаем лучшее время из игры
+            document.getElementById('acc-best-time').innerText = localStorage.getItem('bestRecord') || "60:00";
+        };
+
+        function previewAvatar(event) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const dataURL = reader.result;
+                document.getElementById('user-avatar').src = dataURL;
+                localStorage.setItem('playerAvatar', dataURL);
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function saveNick() {
+            const nick = document.getElementById('user-nick').value;
+            localStorage.setItem('playerNick', nick);
+        }
+
+        function saveAll() {
+            tg.showPopup({
+                title: 'Success!',
+                message: 'Profile updated successfully',
+                buttons: [{type: 'ok'}]
+            });
+        }
+
+        // TON Connect
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://raw.githubusercontent.com/' + window.location.pathname.split('/')[1] + '/' + window.location.pathname.split('/')[2] + '/main/webapp/public/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect-account'
+        });
+    </script>
+</body>
+</html>
