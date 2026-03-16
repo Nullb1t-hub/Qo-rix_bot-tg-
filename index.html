@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Binance Button Clone</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+        .binance-btn {
+            background: radial-gradient(circle, #f3ba2f 0%, #c99400 100%);
+            box-shadow: 0 0 30px rgba(243, 186, 47, 0.4), inset 0 4px 10px rgba(255,255,255,0.5);
+        }
+        .binance-btn:active { transform: scale(0.95); box-shadow: inset 0 4px 20px rgba(0,0,0,0.5); }
+        .timer-card { background: #1e2329; border-radius: 8px; width: 45px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; border: 1px solid #474d57; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between min-h-screen p-6">
+
+    <div class="w-full flex justify-between items-center">
+        <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png" width="30" alt="logo">
+        <div id="ton-connect"></div>
+    </div>
+
+    <div class="text-center mt-4">
+        <h1 class="text-3xl font-bold">Выиграйте 1 BTC</h1>
+        <div class="inline-flex items-center bg-[#2b2f36] px-3 py-1 rounded-full mt-2 border border-gray-700">
+            <span class="text-orange-500 mr-2">₿</span>
+            <span class="text-sm font-bold">$73,268 ></span>
+        </div>
+    </div>
+
+    <div class="flex gap-2 my-8">
+        <div class="timer-card" id="m1">0</div>
+        <div class="timer-card" id="m2">0</div>
+        <div class="text-3xl self-center font-bold text-gray-500">:</div>
+        <div class="timer-card" id="s1">6</div>
+        <div class="timer-card" id="s2">0</div>
+    </div>
+
+    <div class="relative">
+        <button onclick="handleTap()" id="mainBtn" class="binance-btn w-56 h-56 rounded-full flex items-center justify-center border-[10px] border-[#1e2329]">
+            <span class="text-white text-6xl font-bold">₿</span>
+        </button>
+    </div>
+
+    <div class="w-full bg-[#1e2329] rounded-2xl p-4 mt-auto">
+        <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-400 text-sm">Осталось попыток:</span>
+            <span class="text-yellow-500 font-bold text-xl" id="attempts">5</span>
+        </div>
+        <button onclick="showShop()" class="w-full bg-[#f3ba2f] text-black font-bold py-3 rounded-xl mb-4">Получайте больше попыток</button>
+        
+        <div class="border-t border-gray-700 pt-3 flex justify-between text-xs text-gray-400">
+            <span>Всего участников:</span>
+            <span id="online">1,995,779</span>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация TON Connect
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://raw.githubusercontent.com/' + window.location.pathname.split('/')[1] + '/' + window.location.pathname.split('/')[2] + '/main/webapp/public/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+
+        let timeLeft = 6000;
+        let attempts = 5;
+
+        function updateTimer() {
+            let totalSeconds = Math.floor(timeLeft / 100);
+            let m = Math.floor(totalSeconds / 60);
+            let s = totalSeconds % 60;
+            
+            document.getElementById('m1').innerText = Math.floor(m / 10);
+            document.getElementById('m2').innerText = m % 10;
+            document.getElementById('s1').innerText = Math.floor(s / 10);
+            document.getElementById('s2').innerText = s % 10;
+        }
+
+        setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateTimer();
+            }
+            // Имитация других игроков
+            if (timeLeft < 5800 && Math.random() < 0.005) timeLeft = 6000;
+        }, 10);
+
+        function handleTap() {
+            if (attempts > 0) {
+                attempts--;
+                document.getElementById('attempts').innerText = attempts;
+                timeLeft = 6000;
+                if (window.Telegram?.WebApp?.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+                }
+            } else {
+                alert("Попытки закончились! Купите ещё за TON или Звезды.");
+            }
+        }
+
+        function showShop() {
+            // Тут логика магазина, которую мы обсуждали
+            alert("Магазин: 10 попыток = 2 TON\n35 попыток = 6.19 TON\n50 попыток = 9.5 TON");
+        }
+
+        // Телеграм оформление
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.backgroundColor = '#000000';
+    </script>
+</body>
+</html>
