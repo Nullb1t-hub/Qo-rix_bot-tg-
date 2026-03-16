@@ -1,0 +1,235 @@
+:root {
+    --btc: #f3ba2f;
+    --eth: #627eea;
+    --sol: #14f195;
+    --ton: #0088cc;
+    --pepe: #3d9a24;
+    --bg: #080808;
+    --card: #141414;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+    background-color: var(--bg);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* --- АНИМАЦИЯ ЗАГРУЗКИ --- */
+.loader-wrapper {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.loader-content { text-align: center; width: 80%; }
+
+.coin-spinner {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: var(--btc);
+    border-radius: 50%;
+    position: relative;
+    animation: flip 1.5s infinite ease-in-out;
+    box-shadow: 0 0 30px var(--btc);
+}
+
+@keyframes flip {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #222;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--btc);
+    transition: width 0.3s;
+}
+
+/* --- ОСНОВНОЙ ИНТЕРФЕЙС --- */
+.hidden { display: none !important; }
+
+.top-nav {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.online-status {
+    background: rgba(255,255,255,0.05);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #00ff00;
+    border-radius: 50%;
+    margin-right: 6px;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.coin-selector {
+    padding: 0 20px;
+    text-align: center;
+}
+
+.coin-selector h3 {
+    font-size: 10px;
+    color: #555;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+}
+
+.coin-grid {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.coin-item {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #1a1a1a;
+    font-size: 12px;
+    font-weight: 800;
+    color: #444;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.coin-item.active {
+    background: var(--btc);
+    color: black;
+    box-shadow: 0 0 15px var(--btc);
+}
+
+/* --- ТАЙМЕР 60:00 --- */
+.timer-container {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.timer-digits {
+    font-size: 5rem;
+    font-weight: 900;
+    font-family: monospace;
+    letter-spacing: -2px;
+    background: linear-gradient(to bottom, #fff 40%, #555 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- КНОПКА --- */
+.button-zone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.crypto-button {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 12px solid #111;
+    background: radial-gradient(circle at top, #222 0%, #000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.1s;
+    position: relative;
+}
+
+.crypto-button:active { transform: scale(0.92); }
+
+.shadow-btc { box-shadow: 0 0 60px -10px var(--btc); }
+.shadow-eth { box-shadow: 0 0 60px -10px var(--eth); }
+.shadow-sol { box-shadow: 0 0 60px -10px var(--sol); }
+.shadow-ton { box-shadow: 0 0 60px -10px var(--ton); }
+
+.energy-badge {
+    margin-top: -20px;
+    background: #000;
+    border: 1px solid #333;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* --- НИЖНЯЯ ПАНЕЛЬ --- */
+.bottom-panel {
+    margin-top: auto;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, #000, transparent);
+}
+
+.action-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: none;
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.buy-btn { background: #fff; color: #000; }
+.invite-btn { background: #1a1a1a; color: #fff; border: 1px solid #333; }
+
+/* --- МАГАЗИН --- */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #111;
+    width: 100%;
+    padding: 25px;
+    border-radius: 30px;
+    border: 1px solid #222;
+}
+
+.shop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 15px;
+    margin-bottom: 10px;
+}
