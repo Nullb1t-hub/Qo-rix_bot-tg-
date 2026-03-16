@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>List Your Coin - Launchpad</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .create-container { padding: 25px; padding-bottom: 100px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; margin-left: 10px; }
+        .input-field { width: 100%; background: #111; border: 1px solid #222; padding: 16px; border-radius: 18px; color: white; font-weight: 700; outline: none; }
+        .input-field:focus { border-color: var(--btc); }
+        
+        .currency-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .cur-opt { background: #111; border: 1px solid #222; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; }
+        .cur-opt.active { border-color: var(--ton); background: rgba(0, 136, 204, 0.1); color: var(--ton); }
+
+        .fee-box { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 20px; margin-top: 25px; border: 1px dashed #333; }
+        .fee-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .total-pay { font-size: 18px; font-weight: 900; color: var(--btc); margin-top: 10px; border-top: 1px solid #222; padding-top: 10px; }
+
+        .submit-btn { width: 100%; padding: 20px; border-radius: 20px; border: none; background: white; color: black; font-weight: 900; font-size: 16px; margin-top: 30px; box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="bg-black">
+    <button class="back-btn" onclick="history.back()" style="position:fixed; top:20px; left:20px; z-index:100; background:rgba(0,0,0,0.5); border:none; color:white; padding:10px; border-radius:10px;">← BACK</button>
+
+    <div class="create-container">
+        <h2 class="mt-12 mb-8 font-black italic text-2xl uppercase tracking-tighter text-center">List Your <span class="yellow">Asset</span></h2>
+
+        <div class="form-group">
+            <label>Coin Name / Symbol</label>
+            <input type="text" id="coin-name" class="input-field" placeholder="e.g. MYCOIN">
+        </div>
+
+        <div class="form-group">
+            <label>Jackpot Amount (Price Pool)</label>
+            <input type="number" id="prize-amount" class="input-field" placeholder="1000" oninput="calculateFee()">
+        </div>
+
+        <div class="form-group">
+            <label>Telegram Channel Link</label>
+            <input type="text" id="tg-link" class="input-field" placeholder="https://t.me/yourchannel">
+        </div>
+
+        <div class="form-group">
+            <label>Payment Currency</label>
+            <div class="currency-select">
+                <div class="cur-opt active" onclick="setCurrency('TON', this)">TON</div>
+                <div class="cur-opt" onclick="setCurrency('USDT', this)">USDT</div>
+            </div>
+        </div>
+
+        <div class="fee-box">
+            <div class="fee-line"><span>Prize Pool:</span> <span id="view-prize">0</span></div>
+            <div class="fee-line"><span>Service Fee (5%):</span> <span id="view-fee">0</span></div>
+            <div class="fee-line total-pay"><span>Total to Pay:</span> <span id="view-total">0</span></div>
+        </div>
+
+        <button class="submit-btn" onclick="processListing()">CREATE RAFFLE</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        let selectedCurrency = 'TON';
+
+        function setCurrency(cur, el) {
+            selectedCurrency = cur;
+            document.querySelectorAll('.cur-opt').forEach(opt => opt.classList.remove('active'));
+            el.classList.add('active');
+            calculateFee();
+        }
+
+        function calculateFee() {
+            const amount = parseFloat(document.getElementById('prize-amount').value) || 0;
+            const fee = amount * 0.05;
+            const total = amount + fee;
+
+            document.getElementById('view-prize').innerText = amount + ' ' + selectedCurrency;
+            document.getElementById('view-fee').innerText = fee.toFixed(2) + ' ' + selectedCurrency;
+            document.getElementById('view-total').innerText = total.toFixed(2) + ' ' + selectedCurrency;
+        }
+
+        function processListing() {
+            const name = document.getElementById('coin-name').value;
+            const amount = document.getElementById('prize-amount').value;
+            
+            if(!name || !amount) {
+                tg.showAlert("Please fill all fields!");
+                return;
+            }
+
+            tg.showConfirm(`Are you sure you want to list ${name} for ${amount} ${selectedCurrency}?`, (ok) => {
+                if(ok) {
+                    // Здесь будет логика вызова TON Wallet
+                    tg.showAlert("Connecting to TON Blockchain...");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
