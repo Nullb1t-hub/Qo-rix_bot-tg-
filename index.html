@@ -3,90 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Binance Button Clone</title>
+    <title>Crypto Button Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
-        .binance-btn {
-            background: radial-gradient(circle, #f3ba2f 0%, #c99400 100%);
-            box-shadow: 0 0 30px rgba(243, 186, 47, 0.4), inset 0 4px 10px rgba(255,255,255,0.5);
+        :root { --accent: #f3ba2f; }
+        body { 
+            background: radial-gradient(circle at top, #1a1a1a 0%, #000 100%); 
+            color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
-        .binance-btn:active { transform: scale(0.95); box-shadow: inset 0 4px 20px rgba(0,0,0,0.5); }
-        .timer-card { background: #1e2329; border-radius: 8px; width: 45px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; border: 1px solid #474d57; }
+        .font-game { font-family: 'Orbitron', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* Анимация пульсации кнопки */
+        .btn-glow { box-shadow: 0 0 50px -10px var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 30px -10px var(--accent); transform: scale(1); }
+            50% { box-shadow: 0 0 60px 0px var(--accent); transform: scale(1.02); }
+            100% { box-shadow: 0 0 30px -10px var(--accent); transform: scale(1); }
+        }
+
+        /* Перекидной таймер */
+        .digit { background: #1a1a1a; border-radius: 12px; padding: 10px 5px; min-width: 50px; text-align: center; 
+                 font-size: 3rem; font-weight: 900; border: 1px solid #333; box-shadow: inset 0 0 15px #000; }
+        
+        .coin-transition { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="flex flex-col items-center justify-between min-h-screen p-6">
+<body class="flex flex-col items-center min-h-screen">
 
-    <div class="w-full flex justify-between items-center">
-        <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png" width="30" alt="logo">
+    <header class="w-full p-4 flex justify-between items-center glass sticky top-0 z-50">
+        <div class="flex flex-col">
+            <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Live Online</span>
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
+                <span id="online-count" class="font-game text-sm">3,500</span>
+            </div>
+        </div>
         <div id="ton-connect"></div>
-    </div>
+    </header>
 
-    <div class="text-center mt-4">
-        <h1 class="text-3xl font-bold">Выиграйте 1 BTC</h1>
-        <div class="inline-flex items-center bg-[#2b2f36] px-3 py-1 rounded-full mt-2 border border-gray-700">
-            <span class="text-orange-500 mr-2">₿</span>
-            <span class="text-sm font-bold">$73,268 ></span>
+    <div class="text-center mt-8 px-6 coin-transition" id="prize-container">
+        <p class="text-gray-400 text-xs font-bold tracking-[0.3em] uppercase mb-2">Current Jackpot</p>
+        <h1 class="text-5xl font-black italic tracking-tighter mb-2">
+            <span id="prize-amount">0.01</span> <span id="prize-symbol" class="text-yellow-500">BTC</span>
+        </h1>
+        <div class="glass inline-flex items-center px-4 py-1 rounded-full">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Rules: Click last to win</span>
         </div>
     </div>
 
-    <div class="flex gap-2 my-8">
-        <div class="timer-card" id="m1">0</div>
-        <div class="timer-card" id="m2">0</div>
-        <div class="text-3xl self-center font-bold text-gray-500">:</div>
-        <div class="timer-card" id="s1">6</div>
-        <div class="timer-card" id="s2">0</div>
+    <div class="flex gap-2 items-center my-10 font-game">
+        <div class="digit" id="d-m1">0</div>
+        <div class="digit" id="d-m2">0</div>
+        <div class="text-4xl text-gray-600">:</div>
+        <div class="digit text-yellow-500" id="d-s1">6</div>
+        <div class="digit text-yellow-500" id="d-s2">0</div>
     </div>
 
-    <div class="relative">
-        <button onclick="handleTap()" id="mainBtn" class="binance-btn w-56 h-56 rounded-full flex items-center justify-center border-[10px] border-[#1e2329]">
-            <span class="text-white text-6xl font-bold">₿</span>
+    <div class="relative mb-12">
+        <div id="btn-ring" class="absolute inset-0 rounded-full btn-glow opacity-50"></div>
+        <button onclick="handleTap()" id="main-btn" class="relative w-60 h-60 rounded-full border-[12px] border-black bg-[#1a1a1a] flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+            <div id="btn-bg" class="absolute inset-0 opacity-20 bg-yellow-500"></div>
+            <img id="coin-img" src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" class="w-32 h-32 z-10" alt="coin">
         </button>
+        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black border border-white/10 px-6 py-1 rounded-full whitespace-nowrap">
+            <span class="text-xs font-bold">ENERGY: <span id="attempts" class="text-yellow-500">5</span>/5</span>
+        </div>
     </div>
 
-    <div class="w-full bg-[#1e2329] rounded-2xl p-4 mt-auto">
-        <div class="flex justify-between items-center mb-2">
-            <span class="text-gray-400 text-sm">Осталось попыток:</span>
-            <span class="text-yellow-500 font-bold text-xl" id="attempts">5</span>
-        </div>
-        <button onclick="showShop()" class="w-full bg-[#f3ba2f] text-black font-bold py-3 rounded-xl mb-4">Получайте больше попыток</button>
-        
-        <div class="border-t border-gray-700 pt-3 flex justify-between text-xs text-gray-400">
-            <span>Всего участников:</span>
-            <span id="online">1,995,779</span>
+    <div class="w-full px-4 space-y-4 pb-10 mt-auto">
+        <button onclick="inviteFriend()" class="w-full py-4 bg-gradient-to-r from-yellow-500 to-orange-600 text-black font-black italic rounded-2xl shadow-xl active:scale-95 transition-all">
+            INVITE FRIEND (+5 TRIES)
+        </button>
+
+        <div class="glass rounded-3xl p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xs font-black tracking-widest text-gray-500 uppercase">Top 5 Records</h3>
+                <span class="text-[10px] text-yellow-500 animate-pulse">LIVE UPDATING</span>
+            </div>
+            <div id="leaderboard" class="space-y-3">
+                </div>
         </div>
     </div>
 
     <script>
+        // Данные монет
+        const COINS = [
+            { s: 'BTC', a: '0.01', c: '#f3ba2f', img: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
+            { s: 'ETH', a: '0.3', c: '#627eea', img: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+            { s: 'SOL', a: '5', c: '#14f195', img: 'https://cryptologos.cc/logos/solana-sol-logo.png' },
+            { s: 'TON', a: '150', c: '#0088cc', img: 'https://cryptologos.cc/logos/toncoin-ton-logo.png' },
+            { s: 'PEPE', a: '100M', c: '#3d9a24', img: 'https://cryptologos.cc/logos/pepe-pepe-logo.png' }
+        ];
+
+        let currentCoinIdx = 0;
+        let timeLeft = 6000;
+        let attempts = 5;
+        let online = 3500;
+
         // Инициализация TON Connect
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://raw.githubusercontent.com/' + window.location.pathname.split('/')[1] + '/' + window.location.pathname.split('/')[2] + '/main/webapp/public/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
 
-        let timeLeft = 6000;
-        let attempts = 5;
+        // Умный онлайн
+        function updateOnline() {
+            const change = Math.floor(Math.random() * 400) - 200;
+            online = Math.min(Math.max(online + change, 2000), 13000);
+            document.getElementById('online-count').innerText = online.toLocaleString();
+        }
+        setInterval(updateOnline, 3000);
 
-        function updateTimer() {
-            let totalSeconds = Math.floor(timeLeft / 100);
-            let m = Math.floor(totalSeconds / 60);
-            let s = totalSeconds % 60;
-            
-            document.getElementById('m1').innerText = Math.floor(m / 10);
-            document.getElementById('m2').innerText = m % 10;
-            document.getElementById('s1').innerText = Math.floor(s / 10);
-            document.getElementById('s2').innerText = s % 10;
+        // Таймер и логика игры
+        function updateDisplay() {
+            let totalS = Math.floor(timeLeft / 100);
+            let m = Math.floor(totalS / 60);
+            let s = totalS % 60;
+            document.getElementById('d-m1').innerText = Math.floor(m/10);
+            document.getElementById('d-m2').innerText = m%10;
+            document.getElementById('d-s1').innerText = Math.floor(s/10);
+            document.getElementById('d-s2').innerText = s%10;
         }
 
         setInterval(() => {
             if (timeLeft > 0) {
                 timeLeft--;
-                updateTimer();
+                updateDisplay();
+            } else {
+                nextCoin(); // Если время вышло, переходим к следующей монете
             }
-            // Имитация других игроков
-            if (timeLeft < 5800 && Math.random() < 0.005) timeLeft = 6000;
+            // Имитация перебивания другими (рандомно сбрасывает до 33-59 сек)
+            if (timeLeft < 5500 && timeLeft > 3300 && Math.random() < 0.003) {
+                timeLeft = 6000;
+            }
         }, 10);
 
         function handleTap() {
@@ -98,19 +152,48 @@
                     window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
                 }
             } else {
-                alert("Попытки закончились! Купите ещё за TON или Звезды.");
+                alert("Out of energy! Invite friends or wait.");
             }
         }
 
-        function showShop() {
-            // Тут логика магазина, которую мы обсуждали
-            alert("Магазин: 10 попыток = 2 TON\n35 попыток = 6.19 TON\n50 попыток = 9.5 TON");
+        function nextCoin() {
+            currentCoinIdx = (currentCoinIdx + 1) % COINS.length;
+            const coin = COINS[currentCoinIdx];
+            document.body.style.setProperty('--accent', coin.c);
+            document.getElementById('prize-amount').innerText = coin.a;
+            document.getElementById('prize-symbol').innerText = coin.s;
+            document.getElementById('prize-symbol').style.color = coin.c;
+            document.getElementById('coin-img').src = coin.img;
+            document.getElementById('btn-bg').style.backgroundColor = coin.c;
+            timeLeft = 6000;
+            updateLeaderboard();
         }
 
-        // Телеграм оформление
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.backgroundColor = '#000000';
+        function updateLeaderboard() {
+            const names = ['Whale_X', 'CryptoKing', 'TonDegen', 'Satoshi_99', 'PepeBoy'];
+            const html = names.map((n, i) => `
+                <div class="flex justify-between items-center p-3 glass rounded-xl border-l-4" style="border-color: ${i==0?'#f3ba2f':'transparent'}">
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-black">${i+1}.</span>
+                        <span class="font-bold text-sm">${n}</span>
+                    </div>
+                    <span class="font-game text-xs text-yellow-500">00:${(30 + i*5).toString().padStart(2, '0')}</span>
+                </div>
+            `).join('');
+            document.getElementById('leaderboard').innerHTML = html;
+        }
+
+        function inviteFriend() {
+            attempts += 5;
+            document.getElementById('attempts').innerText = attempts;
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.showPopup({ message: "Success! +5 Attempts added for referral." });
+            }
+        }
+
+        updateLeaderboard();
+        window.Telegram.WebApp.expand();
+        window.Telegram.WebApp.backgroundColor = '#000000';
     </script>
 </body>
 </html>
