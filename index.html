@@ -1,18 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Button Pro</title>
+    <title>Crypto Button Ultimate</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="loader" class="loader-wrapper">
         <div class="loader-content">
             <div class="coin-spinner"></div>
-            <h2 class="loading-text">CONNECTING TO NODE...</h2>
+            <h2 class="loading-text">INITIALIZING NODES...</h2>
             <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+    </div>
+
+    <div id="onboarding" class="onboarding-overlay hidden">
+        <div class="onboarding-card">
+            <span class="step-img">🏆</span>
+            <h2>RULES OF THE GAME</h2>
+            <p>Be the last person to press the button. If the timer hits 00:00 — the jackpot is yours!</p>
+            <button onclick="closeOnboarding()" class="start-btn">UNDERSTOOD</button>
         </div>
     </div>
 
@@ -20,14 +31,16 @@
         <header class="top-nav">
             <div class="online-status">
                 <span class="dot"></span>
-                <span id="online-count">0</span> ONLINE
+                <span id="online-count">3,500</span> ONLINE
             </div>
-            <div id="ton-connect-btn"></div>
+            <button class="profile-trigger" onclick="toggleProfile()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08s5.97 1.09 6 3.08c-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            </button>
         </header>
 
         <main class="game-screen">
-            <section class="coin-selector" id="coin-selector">
-                <h3>CHOOSE YOUR TARGET</h3>
+            <section class="coin-selector">
+                <h3>TARGET ASSET</h3>
                 <div class="coin-grid">
                     <div class="coin-item active" onclick="selectCoin(0)">BTC</div>
                     <div class="coin-item" onclick="selectCoin(1)">ETH</div>
@@ -38,17 +51,17 @@
             </section>
 
             <div class="prize-display">
-                <p class="label">CURRENT JACKPOT</p>
+                <p class="label tracking-widest">CURRENT JACKPOT</p>
                 <h1 id="prize-text">0.01 <span class="yellow">BTC</span></h1>
             </div>
 
             <div class="timer-container">
-                <div class="timer-digits font-mono" id="main-timer">60:00</div>
+                <div class="timer-digits" id="main-timer">60:00</div>
             </div>
 
             <div class="button-zone">
-                <button id="tap-btn" class="crypto-button shadow-btc">
-                    <div id="coin-icon-svg">
+                <button id="tap-btn" onclick="handleTap()" class="crypto-button shadow-btc">
+                    <div id="coin-icon-svg" class="full-svg">
                         </div>
                 </button>
                 <div class="energy-badge">ENERGY: <span id="energy-val">5</span>/5</div>
@@ -56,19 +69,46 @@
         </main>
 
         <footer class="bottom-panel">
-            <button class="action-btn buy-btn" onclick="openShop()">GET MORE ATTEMPTS</button>
-            <button class="action-btn invite-btn" onclick="invite()">INVITE FRIENDS</button>
-            <div class="leaderboard-mini" id="leaders">
-                </div>
+            <div class="action-row">
+                <button class="action-btn shop-trigger" onclick="openShop()">GET ATTEMPTS</button>
+                <button class="action-btn invite-btn" onclick="invite()">INVITE</button>
+            </div>
+            <div class="leaderboard-mini">
+                <div class="leader-title">TOP RECORDERS</div>
+                <div id="leaders"></div>
+            </div>
         </footer>
+    </div>
+
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <h2>MY ACCOUNT</h2>
+            <div class="stats-box">
+                <div class="stat-line"><span>Best Record:</span> <b id="best-record">--:--</b></div>
+                <div class="stat-line"><span>Status:</span> <b class="yellow">VIP PLAYER</b></div>
+            </div>
+            <div id="ton-connect-profile"></div> <button class="close-btn" onclick="toggleProfile()">CLOSE</button>
+        </div>
     </div>
 
     <div id="shop-modal" class="modal hidden">
         <div class="modal-content glass">
-            <h2>REFILL ENERGY</h2>
-            <div class="shop-item"><span>10 ATTEMPTS</span> <button>2 TON</button></div>
-            <div class="shop-item"><span>35 ATTEMPTS</span> <button>6.19 TON</button></div>
-            <button class="close-btn" onclick="closeShop()">CLOSE</button>
+            <h2 class="yellow">ENERGY SHOP</h2>
+            <div class="shop-grid">
+                <div class="pack-card">
+                    <span class="pack-title">LITE PACK</span>
+                    <b class="pack-amount">+10 TRIES</b>
+                    <button class="buy-btn-ton" onclick="buy(2, 'ton')">2.0 TON</button>
+                    <button class="buy-btn-stars" onclick="buy(500, 'stars')">★ 500</button>
+                </div>
+                <div class="pack-card">
+                    <span class="pack-title">PRO PACK</span>
+                    <b class="pack-amount">+50 TRIES</b>
+                    <button class="buy-btn-ton" onclick="buy(9.5, 'ton')">9.5 TON</button>
+                    <button class="buy-btn-stars" onclick="buy(2500, 'stars')">★ 2500</button>
+                </div>
+            </div>
+            <button class="close-btn" onclick="closeShop()">BACK</button>
         </div>
     </div>
 
